@@ -41,7 +41,7 @@ func (cli *Client) GetDevices() ([]*Device, error) {
 
 	var paths []dbus.ObjectPath
 
-	if err = msg.GetArgs(&paths); err != nil {
+	if err = msg.Args(&paths); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func (cli *Client) GetDeviceByIpIface(iface string) (*Device, error) {
 	}
 
 	var path dbus.ObjectPath
-	if err = msg.GetArgs(&path); err != nil {
+	if err = msg.Args(&path); err != nil {
 		return nil, err
 	}
 

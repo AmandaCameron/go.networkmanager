@@ -109,9 +109,20 @@ func (dev *Device) PropChanged(handler DeviceHandler) error {
 		return fmt.Errorf("Unknown device type: %s", dev.typ)
 	}
 
-	_, err := dev.WatchSignal(iface, "PropertiesChanged", func(_ *dbus.Message) {
-		go handler(dev)
-	})
+	watcher, err := dev.WatchSignal(iface, "PropertiesChanged")
+
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for {
+			select {
+			case <-watcher.C:
+				handler(dev)
+			}
+		}
+	}()
 
 	return err
 }

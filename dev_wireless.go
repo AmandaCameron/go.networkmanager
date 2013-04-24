@@ -29,7 +29,7 @@ func (dev *Device) GetAccessPoints() ([]*AccessPoint, error) {
 
 	var paths []dbus.ObjectPath
 
-	if err = msg.GetArgs(&paths); err != nil {
+	if err = msg.Args(&paths); err != nil {
 		return nil, err
 	}
 
