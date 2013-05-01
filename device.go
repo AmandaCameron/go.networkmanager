@@ -119,7 +119,7 @@ func (dev *Device) PropChanged(handler DeviceHandler) error {
 		for {
 			select {
 			case <-watcher.C:
-				handler(dev)
+				go handler(dev)
 			}
 		}
 	}()
