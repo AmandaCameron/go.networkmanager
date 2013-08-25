@@ -1,6 +1,8 @@
 package nm
 
 import (
+	"errors"
+
 	"launchpad.net/~jamesh/go-dbus/trunk"
 )
 
@@ -19,6 +21,7 @@ const (
 	NM_DEV_WIRELESS_IFACE = "org.freedesktop.NetworkManager.Device.Wireless"
 	NM_DEV_WIRED_IFACE    = "org.freedesktop.NetworkManager.Device.Wired"
 	NM_AP_IFACE           = "org.freedesktop.NetworkManager.AccessPoint"
+	NM_CONN_IFACE         = "org.freedesktop.NetworkManager.Settings.Connection"
 )
 
 func New(conn *dbus.Connection) *Client {
@@ -66,4 +69,45 @@ func (cli *Client) GetDeviceByIpIface(iface string) (*Device, error) {
 	}
 
 	return cli.newDevice(path), nil
+}
+
+func (cli *Client) AddAndActivateConnection(conn *Connection, dev *Device, objPath dbus.ObjectPath) error {
+	var data map[string]map[string]*dbus.Variant
+
+	if conn != nil {
+		data = conn.Data
+	}
+
+	msg, err := cli.Call(NM_BASE_IFACE, "AddAndActivateConnection", data, dev.ObjectPath(), objPath)
+	if err != nil {
+		return err
+	}
+
+	var path dbus.ObjectPath
+	var activeConn dbus.ObjectPath
+
+	if err = msg.Args(&path, &activeConn); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (cli *Client) ActivateConnection(conn *Connection, dev *Device, objPath dbus.ObjectPath) error {
+	if conn == nil {
+		return errors.New("Must pass connection to ActivateConnection")
+	}
+
+	msg, err := cli.Call(NM_BASE_IFACE, "ActivateConnection", conn.ObjectPath, dev.ObjectPath(), objPath)
+	if err != nil {
+		return nil
+	}
+
+	var path dbus.ObjectPath
+
+	if err = msg.Args(&path); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -1,8 +1,6 @@
 package nm
 
 import (
-	// "fmt"
-
 	"launchpad.net/~jamesh/go-dbus/trunk"
 )
 
@@ -38,7 +36,9 @@ func (ap *AccessPoint) Name() (string, error) {
 		return "", err
 	}
 
-	tmp := ret.([]interface{})
+	return bytesToString(ret.([]interface{})), nil
+
+	/*tmp := ret.([]interface{})
 
 	buff := make([]byte, 0, len(tmp))
 
@@ -46,7 +46,7 @@ func (ap *AccessPoint) Name() (string, error) {
 		buff = append(buff, c.(byte))
 	}
 
-	return string(buff), nil
+	return string(buff), nil*/
 }
 
 func (ap *AccessPoint) Strength() (byte, error) {
@@ -94,14 +94,23 @@ func (ap *AccessPoint) RsnFlags() (uint32, error) {
 	return ret.(uint32), err
 }
 
-// func (ap *AccessPoint) Connect(extras map[string]map[string]interface{}) (ret dbus.ObjectPath, err error) {
-// 	msg, err := ap.cli.Call(NM_BASE_IFACE, "AddAndActivateConnection", extras, ap.dev, ap.GetObjectPath())
-// 	if err != nil {
-// 		return
-// 	}
+func (ap *AccessPoint) Connect() error {
+	conns, err := ap.dev.AvailConnections()
+	if err != nil {
+		return err
+	}
 
-// 	var path dbus.ObjectPath
-// 	err = msg.GetArgs(&path, &ret)
+	name, err := ap.Name()
 
-// 	return
-// }
+	if err != nil {
+		return err
+	}
+
+	for _, conn := range conns {
+		if bytesToString(conn.Data["802-11-wireless"]["ssid"].Value.([]interface{})) == name {
+			return ap.cli.ActivateConnection(conn, ap.dev, ap.ObjectPath())
+		}
+	}
+
+	return ap.cli.AddAndActivateConnection(nil, ap.dev, ap.ObjectPath())
+}
